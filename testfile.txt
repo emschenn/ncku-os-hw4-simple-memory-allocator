@@ -1,0 +1,3 @@
+alloc 16
+free 435
+print bin[1]
