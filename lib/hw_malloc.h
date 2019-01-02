@@ -8,7 +8,7 @@ typedef struct chunk_info_t {
     int mmap_flag : 1;
 } chunk_info_t;
 
-typedef void* chunk_ptr_t;
+typedef struct chunk_header *chunk_ptr_t;
 
 typedef struct chunk_header {
     chunk_ptr_t prev;
@@ -16,8 +16,13 @@ typedef struct chunk_header {
     chunk_info_t size_and_flag;
 } chunk_header;
 
-chunk_header *heap;
+//chunk_header *heap;
 chunk_header *bin[11];
 chunk_header *mmap_alloc_list;
+
 void heap_initial();
+chunk_header* spilt(int size);
+
+chunk_header* mmap_create(void *addr,int size);
+void mmap_list_sort(chunk_header* new);
 #endif

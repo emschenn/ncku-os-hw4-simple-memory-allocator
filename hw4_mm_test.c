@@ -34,8 +34,9 @@ int main(int argc, char *argv[])
     size_t len = 0;
     ssize_t read_len;
     heap_initial();
-    //hw_malloc(33768);
+    hw_malloc(33768);
     hw_malloc(37864);
+    hw_malloc(35816);
     print(mmap_alloc_list);
     while((read_len = getline(&line,&len,stdin)) != -1) {
         if(read_len>0 && line[read_len-1] == '\n') {
