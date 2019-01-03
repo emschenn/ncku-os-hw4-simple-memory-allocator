@@ -24,7 +24,8 @@ void heap_initial()
 void *hw_malloc(size_t bytes)
 {
     chunk_header *ptr;
-    size_t size = bytes + sizeof(chunk_ptr_t);
+    size_t size = bytes + 24;
+    //printf("\nsize%d\n",size);
     /*mmap allocation*/
     if(size > mmap_threshold) {
         if(size/1024 != 0)  size = (size/1024+1)*1024;
@@ -42,54 +43,44 @@ void *hw_malloc(size_t bytes)
         }
         if(size < 32 || size == 32) {
             if(bin[0] == NULL)
-                return((intptr_t)split(0)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(0)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(0);
+            return((intptr_t)bin_pop(0)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 32 &&(size < 64 || size == 64)) {
             if(bin[1] == NULL)
-                return((intptr_t)split(1)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(1)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(1);
+            return((intptr_t)bin_pop(1)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 64 &&(size < 128 || size == 128)) {
             if(bin[2] == NULL)
-                return((intptr_t)split(2)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(2)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(2);
+            return((intptr_t)bin_pop(2)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 128 &&(size < 256 || size == 256)) {
             if(bin[3] == NULL)
-                return((intptr_t)split(3)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(3)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(3);
+            return((intptr_t)bin_pop(3)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 256 &&(size < 512 || size == 512)) {
             if(bin[4] == NULL)
-                return((intptr_t)split(4)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(4)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(4);
+            return((intptr_t)bin_pop(4)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 512 &&(size < 1024 || size == 1024)) {
             if(bin[5] == NULL)
-                return((intptr_t)split(5)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(5)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(5);
+            return((intptr_t)bin_pop(5)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 1024 &&(size < 2048 || size == 2048)) {
             if(bin[6] == NULL)
-                return((intptr_t)split(6)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(6)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(6);
+            return((intptr_t)bin_pop(6)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 2048 &&(size < 4096 || size == 4096)) {
             if(bin[7] == NULL)
-                return((intptr_t)split(7)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(7)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(7);
+            return((intptr_t)bin_pop(7)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 4096 &&(size < 8192 || size == 8192)) {
             if(bin[8] == NULL)
-                return((intptr_t)split(8)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(8)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(8);
+            return((intptr_t)bin_pop(8)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 8192 &&(size < 16384 || size == 16384)) {
             if(bin[9] == NULL)
-                return((intptr_t)split(9)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
-            else
-                return( (intptr_t)bin_popmin(9)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
+                split(9);
+            return((intptr_t)bin_pop(9)+sizeof(chunk_header)-(intptr_t)hw_get_start_brk());
         } else if(size > 16384 ) {
             if(bin[10] == NULL)
                 split(10);
@@ -161,122 +152,31 @@ void *hw_get_start_brk(void)
     return start_brk;
 }
 
-chunk_header* split(int i)
+void split(int i)
 {
-    chunk_header *temp;
-    int j = i;
+    int j =i;
+    chunk_header *temp,*new1,*new2;
     if(i == 10) {
-        // chunk_header *new = start_brk;
-        // new->size_and_flag.prev_chunk_size = size(i);
-        // new->size_and_flag.current_chunk_size = size(i);
-        // new->size_and_flag.allocated_flag = 0;
-        // new->size_and_flag.mmap_flag = 0;
-        // new->prev = new->next = new;
-        chunk_header * new1 = bin_create(start_brk,10);
+        new1 = bin_create(start_brk,10);
         bin_list_sort(new1,10);
-        // chunk_header *new2 = start_brk+size(10);
-        // new->size_and_flag.prev_chunk_size = size(i);
-        // new->size_and_flag.current_chunk_size = size(i);
-        // new->size_and_flag.allocated_flag = 0;
-        // new->size_and_flag.mmap_flag = 0;
-        // new->prev = new->next = new;
-        chunk_header *new2 = bin_create(start_brk+size(10),10);
+        new2 = bin_create(start_brk+size(10),10);
         bin_list_sort(new2,10);
-        //print_bin(bin[10]);
-        //return bin_pop(10);
     } else {
-        while(bin[j]==NULL)
-            j++;
-        temp = bin_popmin(j);
-        bin_push(i,temp);
-        bin_push(i,temp+size(i));
-        return bin_popmin(i);
-    }
-}
-chunk_header *split(int i)
-{
-    if (bin[i]->chunk_size - size(i) >= 48) {
-        chunk_header *base = *ori;
-        /*Change next chunk's prev_chunk_size*/
-        chunk_header *nxt = (chunk_header *)((intptr_t)(void*)base +(intptr_t)(void*)((chunk_header *)base)->chunk_size);
-        nxt->prev_chunk_size -= need;
-        /*Create upper chunk by shifting need*/
-        chunk_header *new = (void *)((intptr_t)(void*)base + need);
-        new->chunk_size = (base)->chunk_size - need;
-        new->prev_chunk_size = need;
-        new->prev_free_flag = 0;
-        bin[i] = new;
-        chunk_header *ret = create_chunk(base, need);
-        /*Insert upper chunk into bin*/
-        en_bin(search_enbin((bin[i])->chunk_size), (bin[i]));
-        slice_num++;
-        return ret;
-    } else {
-        /*If chunk size is not enough to split, return whole chunk*/
-        chunk_header *nxt = (chunk_header *)((intptr_t)(void*)(*ori) +(intptr_t)(void*)((chunk_header *)(*ori))->chunk_size);
-        nxt->prev_free_flag = 0;
-        return (*ori);
-    }
-}
-void bin_push(int i,void *addr)
-{
-    if(bin[i] == NULL) {
-        bin[i] = addr;
-        bin[i]->size_and_flag.prev_chunk_size = size(i);
-        bin[i]->size_and_flag.current_chunk_size = size(i);
-        bin[i]->size_and_flag.allocated_flag = 0;
-        bin[i]->size_and_flag.mmap_flag = 0;
-        bin[i]->prev = bin[i]->next = bin[i];
-    } else {
-        chunk_header *last = bin[i]->prev;
-        chunk_header *new = addr;
-        new->size_and_flag.current_chunk_size = size(i);
-        new->size_and_flag.prev_chunk_size = size(i);
-        new->size_and_flag.allocated_flag = 0;
-        new->size_and_flag.mmap_flag = 0;
-        new->next = bin[i];
-        new->prev = last;
-        last->next = bin[i]->prev = new;
-        bin[i] = new;
+        if(bin[i+1] == NULL) {
+            while(bin[j]==NULL) {
+                j++;
+                split(j);
+            }
+            split(i);
+        } else {
+            new1 = bin_create((intptr_t)(void*)bin_pop(i+1),i);
+            bin_list_sort(new1,i);
+            new2 = bin_create((intptr_t)(void*)new1+size(i),i);
+            bin_list_sort(new2,i);
+        }
     }
 }
 
-chunk_header* bin_popmin(int i)
-{
-    if(bin[i] == NULL)
-        return NULL;
-    chunk_header *temp = bin[i];
-    chunk_header *prev1;
-    chunk_header *min = bin[i];
-    printf("min: %p\n",min);
-    while(temp->next != bin[i]) {
-        printf("%p\n",temp);
-        if(temp < min) {
-            min = temp;
-        }
-        prev1 = temp->prev;
-        temp = temp->next;
-    }
-    printf("min: %p\n",min);
-    if(min->next == bin[i]) {   //only 1
-        bin[i] = NULL;
-        return min;
-    }
-    if(min == bin[i]) { //first node
-        prev1 = bin[i]->prev;
-        bin[i] = bin[i]->next;
-        prev1->next = bin[i];
-        bin[i]->prev = prev1;
-    } else if(min->next == bin[i]) { //last node
-        prev1->next = bin[i];
-        bin[i]->prev = prev1;
-    } else {
-        chunk_header *temp1 = min->next;
-        prev1->next = temp1;
-        temp1->prev = prev1;
-    }
-    return min;
-}
 chunk_header* bin_pop(int i)
 {
     if(bin[i]==NULL)

@@ -6,59 +6,9 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdint.h>
-// void user_alloc(char *argv)
-// {
-//     char* arg = strtok(argv," ");
-//     arg = strtok(NULL," ");
-//     hw_malloc(atoi(arg));
-// }
-// void user_free(char *argv)
-// {
-//     char* arg = strtok(argv," ");
-//     arg = strtok(NULL," ");
-// }
-// void user_print(char *argv)
-// {
-//     char* arg = strtok(argv," ");
-//     arg = strtok(NULL," ");
-//     if(strcmp(arg,"mmap_alloc_list")==0) {
-//         print_list(mmap_alloc_list);
-//     } else {
-
-//     }
-// }
 
 int main(int argc, char *argv[])
 {
-    // char* line;
-    // size_t len = 0;
-    // ssize_t read_len;
-    // heap_initial();
-    printf("0x%012" PRIxPTR "\n",hw_malloc(17000));
-    printf("0x%012" PRIxPTR "\n",hw_malloc(17000));
-    //printf("%p\n",hw_malloc(17000));
-    printf("%d",hw_free(0x000000000018));
-    printf("%d",hw_free(0x000000008018));
-    print_bin(bin[10]);
-    // printf("%p\n",    hw_malloc(33768));
-    // printf("%p\n",hw_malloc(37864));
-    // printf("%p\n",hw_malloc(35816));
-    // print_mmap(mmap_alloc_list);
-    // while((getline(&line,&len,stdin)) != -1) {
-    //     // if(read_len>0 && line[read_len-1] == '\n') {
-    //     //     line[read_len-1] = '\0';
-    //     //     read_len -= 1;
-    //     // }
-    //     if(strstr(line,"alloc")==0)
-    //         user_alloc(line);
-    //     else if(strstr(line,"free")==0)
-    //         user_free(line);
-    //     else if(strstr(line,"alloc")==0)
-    //         user_print(line);
-    //     printf("%s\n",line);
-    // }
-
-
     char args[100];
     void *mem;
     int size;

@@ -1,2 +1,7 @@
-alloc 17000
-print bin[10]
+alloc 16
+alloc 16
+alloc 16
+alloc 16
+free 0x000000000018
+free 0x000000000098
+print bin[1]
