@@ -21,8 +21,21 @@ chunk_header *bin[11];
 chunk_header *mmap_alloc_list;
 
 void heap_initial();
-chunk_header* spilt(int size);
+chunk_header* split(int size);
+chunk_header* bin_popmin(int i);
+chunk_header* bin_pop(int i);
+void bin_push(int i,void *addr);
+int size(int i);
 
 chunk_header* mmap_create(void *addr,int size);
 void mmap_list_sort(chunk_header* new);
+
+chunk_header* bin_create(void *addr,int i);
+void bin_list_sort(chunk_header* new,int i);
+void *hw_malloc(size_t bytes);
+int hw_free(void *mem);
+void *hw_get_start_brk(void);
+
+void print_mmap(chunk_header *list);
+void print_bin(chunk_header *list);
 #endif
