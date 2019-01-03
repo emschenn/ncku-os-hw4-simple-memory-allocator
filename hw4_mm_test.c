@@ -34,11 +34,12 @@ int main(int argc, char *argv[])
     // size_t len = 0;
     // ssize_t read_len;
     // heap_initial();
-    // printf("0x%012" PRIxPTR "\n",hw_malloc(17000));
-    // printf("0x%012" PRIxPTR "\n",hw_malloc(17000));
-    // //printf("%p\n",hw_malloc(17000));
-
-    // print_bin(bin[10]);
+    printf("0x%012" PRIxPTR "\n",hw_malloc(17000));
+    printf("0x%012" PRIxPTR "\n",hw_malloc(17000));
+    //printf("%p\n",hw_malloc(17000));
+    printf("%d",hw_free(0x000000000018));
+    printf("%d",hw_free(0x000000008018));
+    print_bin(bin[10]);
     // printf("%p\n",    hw_malloc(33768));
     // printf("%p\n",hw_malloc(37864));
     // printf("%p\n",hw_malloc(35816));

@@ -101,33 +101,56 @@ void *hw_malloc(size_t bytes)
 
 int hw_free(void *mem)
 {
-    chunk_header *ptr = mem-sizeof(chunk_header);
-    if(ptr->size_and_flag.mmap_flag = 1) {
+    chunk_header *ptr = (intptr_t)mem - sizeof(chunk_header);
+    if(ptr != NULL && ptr->size_and_flag.mmap_flag == 1) {
         munmap(ptr,ptr->size_and_flag.current_chunk_size);
         return 1;
     } else {
+        ptr = (intptr_t)mem + (intptr_t)hw_get_start_brk()- sizeof(chunk_header);
         if(ptr->size_and_flag.current_chunk_size == 32) {
-            bin_push(0,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,0);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 64) {
-            bin_push(1,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,1);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 128) {
-            bin_push(2,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,2);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 256) {
-            bin_push(3,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,3);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 512) {
-            bin_push(4,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,4);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 1024) {
-            bin_push(5,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,5);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 2048) {
-            bin_push(6,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,6);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 4096) {
-            bin_push(7,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,7);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 8192) {
-            bin_push(8,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,8);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 16384) {
-            bin_push(9,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,9);
+            return 1;
         } else if(ptr->size_and_flag.current_chunk_size == 32768) {
-            bin_push(10,mem-sizeof(chunk_header));
+            ptr->size_and_flag.allocated_flag = 0;
+            bin_list_sort(ptr,10);
+            return 1;
         }
     }
     return 0;
@@ -143,10 +166,22 @@ chunk_header* split(int i)
     chunk_header *temp;
     int j = i;
     if(i == 10) {
-        chunk_header * n1 = bin_create(start_brk,10);
-        bin_list_sort(n1,10);
-        chunk_header *n2 = bin_create(start_brk+size(10),10);
-        bin_list_sort(n2,10);
+        // chunk_header *new = start_brk;
+        // new->size_and_flag.prev_chunk_size = size(i);
+        // new->size_and_flag.current_chunk_size = size(i);
+        // new->size_and_flag.allocated_flag = 0;
+        // new->size_and_flag.mmap_flag = 0;
+        // new->prev = new->next = new;
+        chunk_header * new1 = bin_create(start_brk,10);
+        bin_list_sort(new1,10);
+        // chunk_header *new2 = start_brk+size(10);
+        // new->size_and_flag.prev_chunk_size = size(i);
+        // new->size_and_flag.current_chunk_size = size(i);
+        // new->size_and_flag.allocated_flag = 0;
+        // new->size_and_flag.mmap_flag = 0;
+        // new->prev = new->next = new;
+        chunk_header *new2 = bin_create(start_brk+size(10),10);
+        bin_list_sort(new2,10);
         //print_bin(bin[10]);
         //return bin_pop(10);
     } else {
@@ -156,6 +191,31 @@ chunk_header* split(int i)
         bin_push(i,temp);
         bin_push(i,temp+size(i));
         return bin_popmin(i);
+    }
+}
+chunk_header *split(int i)
+{
+    if (bin[i]->chunk_size - size(i) >= 48) {
+        chunk_header *base = *ori;
+        /*Change next chunk's prev_chunk_size*/
+        chunk_header *nxt = (chunk_header *)((intptr_t)(void*)base +(intptr_t)(void*)((chunk_header *)base)->chunk_size);
+        nxt->prev_chunk_size -= need;
+        /*Create upper chunk by shifting need*/
+        chunk_header *new = (void *)((intptr_t)(void*)base + need);
+        new->chunk_size = (base)->chunk_size - need;
+        new->prev_chunk_size = need;
+        new->prev_free_flag = 0;
+        bin[i] = new;
+        chunk_header *ret = create_chunk(base, need);
+        /*Insert upper chunk into bin*/
+        en_bin(search_enbin((bin[i])->chunk_size), (bin[i]));
+        slice_num++;
+        return ret;
+    } else {
+        /*If chunk size is not enough to split, return whole chunk*/
+        chunk_header *nxt = (chunk_header *)((intptr_t)(void*)(*ori) +(intptr_t)(void*)((chunk_header *)(*ori))->chunk_size);
+        nxt->prev_free_flag = 0;
+        return (*ori);
     }
 }
 void bin_push(int i,void *addr)
@@ -224,6 +284,7 @@ chunk_header* bin_pop(int i)
     if(bin[i]->next == bin[i]) { //only 1 node
         chunk_header *new = bin[i];
         bin[i] = NULL;
+        new->size_and_flag.allocated_flag = 1;
         return new;
     } else {
         chunk_header *new = bin[i];
@@ -231,6 +292,7 @@ chunk_header* bin_pop(int i)
         bin[i]->next->prev = bin[i]->prev;
         bin[i] = bin[i]->next;
         new->prev = new->next = new;
+        new->size_and_flag.allocated_flag = 1;
         return new;
     }
 }
@@ -342,3 +404,4 @@ int size(int i)
         size = size*2;
     return size;
 }
+
